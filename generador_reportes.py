@@ -458,14 +458,23 @@ def generate_analitico(alumna_nombre, notas, datos_alumnas, plan):
 
 
 class ReportGeneratorApp:
+    # Color palette (Tailwind-inspired)
+    BG = "#f1f5f9"        # slate-100
+    CARD = "#ffffff"
+    PRIMARY = "#4f46e5"   # indigo-600
+    PRIMARY_DARK = "#4338ca"
+    TEXT = "#0f172a"      # slate-900
+    MUTED = "#64748b"     # slate-500
+    BORDER = "#e2e8f0"    # slate-200
+    SUCCESS = "#059669"   # emerald-600
+    ACCENT_BAR = "#6366f1"  # indigo-500
+
     def __init__(self, root):
         self.root = root
         self.root.title("Generador de Reportes - Estudiantado Santa Mariana de Jesús")
-        self.root.geometry("700x580")
-        self.root.resizable(False, False)
-
-        # Try to set a nice background
-        self.root.configure(bg="#f0f4f8")
+        self.root.geometry("760x640")
+        self.root.minsize(720, 600)
+        self.root.configure(bg=self.BG)
 
         # Load data
         try:
@@ -492,90 +501,225 @@ class ReportGeneratorApp:
         self.build_ui()
 
     def build_ui(self):
+        BG, CARD, PRIMARY, PRIMARY_DARK = self.BG, self.CARD, self.PRIMARY, self.PRIMARY_DARK
+        TEXT, MUTED, BORDER, SUCCESS = self.TEXT, self.MUTED, self.BORDER, self.SUCCESS
+
         style = ttk.Style()
         style.theme_use("clam")
-        style.configure("Title.TLabel", font=("Helvetica", 16, "bold"), background="#f0f4f8")
-        style.configure("Subtitle.TLabel", font=("Helvetica", 10), background="#f0f4f8", foreground="#555")
-        style.configure("Section.TLabelframe.Label", font=("Helvetica", 11, "bold"))
-        style.configure("Big.TButton", font=("Helvetica", 12, "bold"), padding=10)
-        style.configure("TLabelframe", background="#f0f4f8")
-        style.configure("TLabel", background="#f0f4f8")
-        style.configure("TFrame", background="#f0f4f8")
 
-        # Title
-        title_frame = ttk.Frame(self.root)
-        title_frame.pack(pady=(15, 5), fill="x")
-        ttk.Label(title_frame, text="Generador de Reportes", style="Title.TLabel").pack()
-        ttk.Label(title_frame, text="Estudiantado Santa Mariana de Jesús", style="Subtitle.TLabel").pack()
+        # Base
+        style.configure(".", background=BG, foreground=TEXT, font=("Helvetica", 10))
+        style.configure("TFrame", background=BG)
+        style.configure("TLabel", background=BG, foreground=TEXT)
 
-        # Report type selection
-        type_frame = ttk.LabelFrame(self.root, text=" Tipo de Reporte ", style="Section.TLabelframe", padding=10)
-        type_frame.pack(padx=20, pady=10, fill="x")
+        # Header text
+        style.configure("Title.TLabel", font=("Helvetica", 19, "bold"),
+                        background=BG, foreground=TEXT)
+        style.configure("Subtitle.TLabel", font=("Helvetica", 10),
+                        background=BG, foreground=MUTED)
+        style.configure("Info.TLabel", font=("Helvetica", 9),
+                        background=BG, foreground=MUTED)
+
+        # Card-context labels
+        style.configure("Section.TLabel", font=("Helvetica", 12, "bold"),
+                        background=CARD, foreground=TEXT)
+        style.configure("Form.TLabel", font=("Helvetica", 10),
+                        background=CARD, foreground=TEXT)
+        style.configure("Card.TLabel", background=CARD, foreground=TEXT)
+
+        # Input fields
+        style.configure("TEntry", fieldbackground=CARD, bordercolor=BORDER,
+                        lightcolor=BORDER, darkcolor=BORDER, padding=6)
+        style.configure("TCombobox", fieldbackground=CARD, bordercolor=BORDER,
+                        lightcolor=BORDER, darkcolor=BORDER, padding=4,
+                        arrowsize=14)
+        style.map("TCombobox",
+                  fieldbackground=[("readonly", CARD), ("disabled", "#f8fafc")],
+                  bordercolor=[("focus", PRIMARY)])
+        style.map("TEntry", bordercolor=[("focus", PRIMARY)])
+
+        # Radiobutton on card background
+        style.configure("Type.TRadiobutton", background=CARD, foreground=TEXT,
+                        font=("Helvetica", 11), padding=4)
+        style.map("Type.TRadiobutton",
+                  background=[("active", CARD)],
+                  foreground=[("selected", PRIMARY)])
+
+        # Primary action button
+        style.configure("Primary.TButton",
+                        background=PRIMARY, foreground="white",
+                        font=("Helvetica", 12, "bold"),
+                        padding=(28, 12), borderwidth=0, relief="flat",
+                        focuscolor=PRIMARY)
+        style.map("Primary.TButton",
+                  background=[("active", PRIMARY_DARK), ("pressed", PRIMARY_DARK),
+                              ("disabled", "#94a3b8")],
+                  foreground=[("disabled", "white")])
+
+        # Secondary outline button
+        style.configure("Secondary.TButton",
+                        background=CARD, foreground=PRIMARY,
+                        font=("Helvetica", 10, "bold"),
+                        padding=(14, 8), borderwidth=1, relief="flat",
+                        bordercolor=BORDER, focuscolor=CARD)
+        style.map("Secondary.TButton",
+                  background=[("active", "#eef2ff")],
+                  bordercolor=[("active", PRIMARY)])
+
+        # Treeview (lista de reportes)
+        style.configure("Treeview", background=CARD, fieldbackground=CARD,
+                        foreground=TEXT, rowheight=26, borderwidth=0,
+                        font=("Helvetica", 10))
+        style.configure("Treeview.Heading", background="#f8fafc",
+                        foreground=TEXT, font=("Helvetica", 10, "bold"),
+                        relief="flat", padding=6)
+        style.map("Treeview", background=[("selected", PRIMARY)],
+                  foreground=[("selected", "white")])
+
+        # Status label (success)
+        style.configure("Status.TLabel", background=BG, foreground=SUCCESS,
+                        font=("Helvetica", 10, "bold"))
+
+        # === Header (with thin accent bar) ===
+        accent = tk.Frame(self.root, bg=self.ACCENT_BAR, height=4)
+        accent.pack(fill="x", side="top")
+
+        header = ttk.Frame(self.root)
+        header.pack(fill="x", padx=28, pady=(18, 4))
+
+        header_left = ttk.Frame(header)
+        header_left.pack(side="left", anchor="w")
+        ttk.Label(header_left, text="Generador de Reportes",
+                  style="Title.TLabel").pack(anchor="w")
+        ttk.Label(header_left, text="Estudiantado Santa Mariana de Jesús",
+                  style="Subtitle.TLabel").pack(anchor="w", pady=(2, 0))
+
+        ttk.Button(header, text="Ver reportes generados",
+                   style="Secondary.TButton", cursor="hand2",
+                   command=self.open_reports_viewer).pack(side="right", anchor="ne")
+
+        # Divider
+        tk.Frame(self.root, height=1, bg=BORDER).pack(fill="x", padx=28, pady=(12, 16))
+
+        # === Type selector card ===
+        type_card = tk.Frame(self.root, bg=CARD,
+                             highlightbackground=BORDER, highlightthickness=1, bd=0)
+        type_card.pack(padx=28, pady=(0, 14), fill="x")
+
+        type_inner = tk.Frame(type_card, bg=CARD)
+        type_inner.pack(padx=20, pady=16, fill="x")
+
+        ttk.Label(type_inner, text="Tipo de reporte",
+                  style="Section.TLabel").pack(anchor="w", pady=(0, 10))
 
         self.report_type = tk.StringVar(value="acta")
-        ttk.Radiobutton(type_frame, text="Acta de Examen", variable=self.report_type,
-                        value="acta", command=self.toggle_panels).pack(side="left", padx=20)
-        ttk.Radiobutton(type_frame, text="Analítico de Estudios", variable=self.report_type,
-                        value="analitico", command=self.toggle_panels).pack(side="left", padx=20)
+        radio_row = tk.Frame(type_inner, bg=CARD)
+        radio_row.pack(anchor="w")
+        ttk.Radiobutton(radio_row, text="Acta de Examen",
+                        variable=self.report_type, value="acta",
+                        style="Type.TRadiobutton",
+                        command=self.toggle_panels).pack(side="left", padx=(0, 36))
+        ttk.Radiobutton(radio_row, text="Analítico de Estudios",
+                        variable=self.report_type, value="analitico",
+                        style="Type.TRadiobutton",
+                        command=self.toggle_panels).pack(side="left")
 
-        # === ACTA panel ===
-        self.acta_frame = ttk.LabelFrame(self.root, text=" Datos del Acta de Examen ",
-                                         style="Section.TLabelframe", padding=15)
+        # === ACTA card ===
+        self.acta_frame = tk.Frame(self.root, bg=CARD,
+                                   highlightbackground=BORDER, highlightthickness=1, bd=0)
+        acta_inner = tk.Frame(self.acta_frame, bg=CARD)
+        acta_inner.pack(padx=20, pady=16, fill="x", expand=True)
+
+        ttk.Label(acta_inner, text="Datos del Acta de Examen",
+                  style="Section.TLabel").pack(anchor="w", pady=(0, 14))
+
+        form_acta = tk.Frame(acta_inner, bg=CARD)
+        form_acta.pack(fill="x")
+        form_acta.columnconfigure(1, weight=1)
 
         row = 0
-        ttk.Label(self.acta_frame, text="Materia:").grid(row=row, column=0, sticky="w", pady=5)
-        self.acta_materia = ttk.Combobox(self.acta_frame, values=self.materias_unicas, width=50)
-        self.acta_materia.grid(row=row, column=1, pady=5, padx=5)
+        ttk.Label(form_acta, text="Materia",
+                  style="Form.TLabel").grid(row=row, column=0, sticky="w",
+                                            pady=7, padx=(0, 14))
+        self.acta_materia = ttk.Combobox(form_acta, values=self.materias_unicas)
+        self.acta_materia.grid(row=row, column=1, sticky="ew", pady=7)
 
         row += 1
-        ttk.Label(self.acta_frame, text="Profesor:").grid(row=row, column=0, sticky="w", pady=5)
-        self.acta_profesor = ttk.Combobox(self.acta_frame, values=self.profesores_unicos + self.profesores, width=50)
-        self.acta_profesor.grid(row=row, column=1, pady=5, padx=5)
+        ttk.Label(form_acta, text="Profesor",
+                  style="Form.TLabel").grid(row=row, column=0, sticky="w",
+                                            pady=7, padx=(0, 14))
+        self.acta_profesor = ttk.Combobox(form_acta,
+                                          values=self.profesores_unicos + self.profesores)
+        self.acta_profesor.grid(row=row, column=1, sticky="ew", pady=7)
 
         row += 1
-        ttk.Label(self.acta_frame, text="Año:").grid(row=row, column=0, sticky="w", pady=5)
-        self.acta_anio = ttk.Combobox(self.acta_frame, values=["2023", "2024", "2025", "2026"], width=15)
-        self.acta_anio.grid(row=row, column=1, pady=5, padx=5, sticky="w")
+        ttk.Label(form_acta, text="Año",
+                  style="Form.TLabel").grid(row=row, column=0, sticky="w",
+                                            pady=7, padx=(0, 14))
+        self.acta_anio = ttk.Combobox(form_acta,
+                                      values=["2023", "2024", "2025", "2026"], width=14)
+        self.acta_anio.grid(row=row, column=1, sticky="w", pady=7)
         self.acta_anio.set("2025")
 
         row += 1
-        ttk.Label(self.acta_frame, text="Semestre:").grid(row=row, column=0, sticky="w", pady=5)
-        self.acta_semestre = ttk.Combobox(self.acta_frame, values=["I", "II"], width=10)
-        self.acta_semestre.grid(row=row, column=1, pady=5, padx=5, sticky="w")
+        ttk.Label(form_acta, text="Semestre",
+                  style="Form.TLabel").grid(row=row, column=0, sticky="w",
+                                            pady=7, padx=(0, 14))
+        self.acta_semestre = ttk.Combobox(form_acta, values=["I", "II"], width=14)
+        self.acta_semestre.grid(row=row, column=1, sticky="w", pady=7)
         self.acta_semestre.set("I")
 
         row += 1
-        ttk.Label(self.acta_frame, text="Fecha (DD/MM/AAAA):").grid(row=row, column=0, sticky="w", pady=5)
-        self.acta_fecha = ttk.Entry(self.acta_frame, width=20)
-        self.acta_fecha.grid(row=row, column=1, pady=5, padx=5, sticky="w")
+        ttk.Label(form_acta, text="Fecha (DD/MM/AAAA)",
+                  style="Form.TLabel").grid(row=row, column=0, sticky="w",
+                                            pady=7, padx=(0, 14))
+        self.acta_fecha = ttk.Entry(form_acta, width=22)
+        self.acta_fecha.grid(row=row, column=1, sticky="w", pady=7)
         today = datetime.date.today().strftime("%d/%m/%Y")
         self.acta_fecha.insert(0, today)
 
-        # === ANALITICO panel ===
-        self.analitico_frame = ttk.LabelFrame(self.root, text=" Datos del Analítico de Estudios",
-                                               style="Section.TLabelframe", padding=15)
+        # === ANALITICO card ===
+        self.analitico_frame = tk.Frame(self.root, bg=CARD,
+                                        highlightbackground=BORDER, highlightthickness=1, bd=0)
+        ana_inner = tk.Frame(self.analitico_frame, bg=CARD)
+        ana_inner.pack(padx=20, pady=16, fill="x", expand=True)
 
-        ttk.Label(self.analitico_frame, text="Alumna:").grid(row=0, column=0, sticky="w", pady=5)
-        self.analitico_alumna = ttk.Combobox(self.analitico_frame, values=self.alumnas_unicas, width=50)
-        self.analitico_alumna.grid(row=0, column=1, pady=5, padx=5)
+        ttk.Label(ana_inner, text="Datos del Analítico de Estudios",
+                  style="Section.TLabel").pack(anchor="w", pady=(0, 14))
+
+        form_ana = tk.Frame(ana_inner, bg=CARD)
+        form_ana.pack(fill="x")
+        form_ana.columnconfigure(1, weight=1)
+
+        ttk.Label(form_ana, text="Alumna",
+                  style="Form.TLabel").grid(row=0, column=0, sticky="w",
+                                            pady=7, padx=(0, 14))
+        self.analitico_alumna = ttk.Combobox(form_ana, values=self.alumnas_unicas)
+        self.analitico_alumna.grid(row=0, column=1, sticky="ew", pady=7)
         if self.alumnas_unicas:
             self.analitico_alumna.set(self.alumnas_unicas[0])
 
         # Status label
         self.status_var = tk.StringVar(value="")
         self.status_label = ttk.Label(self.root, textvariable=self.status_var,
-                                      foreground="#2563eb", font=("Helvetica", 10))
+                                      style="Status.TLabel")
 
         # Generate button
-        self.generate_btn = ttk.Button(self.root, text="Generar Reporte", style="Big.TButton",
-                                       command=self.generate_report)
+        self.generate_btn = ttk.Button(self.root, text="Generar Reporte",
+                                       style="Primary.TButton",
+                                       command=self.generate_report,
+                                       cursor="hand2")
 
-        # Info label
+        # Info bar at bottom
         self.info_var = tk.StringVar(
-            value=f"Datos cargados: {len(self.notas)} notas, {len(self.datos)} alumnas, "
-                  f"{len(self.plan)} materias en plan"
+            value=f"Datos cargados: {len(self.notas)} notas  ·  "
+                  f"{len(self.datos)} alumnas  ·  {len(self.plan)} materias en plan"
         )
-        ttk.Label(self.root, textvariable=self.info_var, style="Subtitle.TLabel").pack(side="bottom", pady=5)
+        info_bar = ttk.Frame(self.root)
+        info_bar.pack(side="bottom", fill="x", padx=28, pady=(0, 14))
+        tk.Frame(info_bar, height=1, bg=BORDER).pack(fill="x", pady=(0, 8))
+        ttk.Label(info_bar, textvariable=self.info_var,
+                  style="Info.TLabel").pack(anchor="w")
 
         # Initial layout
         self.toggle_panels()
@@ -587,12 +731,149 @@ class ReportGeneratorApp:
         self.generate_btn.pack_forget()
 
         if self.report_type.get() == "acta":
-            self.acta_frame.pack(padx=20, pady=10, fill="x")
+            self.acta_frame.pack(padx=28, pady=(0, 14), fill="x")
         else:
-            self.analitico_frame.pack(padx=20, pady=10, fill="x")
+            self.analitico_frame.pack(padx=28, pady=(0, 14), fill="x")
 
-        self.status_label.pack(padx=20, pady=5)
-        self.generate_btn.pack(pady=15)
+        self.status_label.pack(padx=28, pady=(4, 0))
+        self.generate_btn.pack(pady=(14, 8))
+
+    def open_reports_viewer(self):
+        win = tk.Toplevel(self.root)
+        win.title("Reportes generados")
+        win.geometry("760x480")
+        win.minsize(700, 420)
+        win.configure(bg=self.BG)
+        win.transient(self.root)
+
+        tk.Frame(win, bg=self.ACCENT_BAR, height=4).pack(fill="x", side="top")
+
+        head = ttk.Frame(win)
+        head.pack(fill="x", padx=24, pady=(16, 6))
+        ttk.Label(head, text="Reportes generados",
+                  style="Title.TLabel").pack(anchor="w")
+        ttk.Label(head, text=OUTPUT_DIR,
+                  style="Subtitle.TLabel").pack(anchor="w", pady=(2, 0))
+
+        tk.Frame(win, height=1, bg=self.BORDER).pack(fill="x", padx=24, pady=(10, 12))
+
+        card = tk.Frame(win, bg=self.CARD,
+                        highlightbackground=self.BORDER, highlightthickness=1, bd=0)
+        card.pack(padx=24, pady=(0, 12), fill="both", expand=True)
+
+        list_wrap = tk.Frame(card, bg=self.CARD)
+        list_wrap.pack(padx=12, pady=12, fill="both", expand=True)
+
+        cols = ("nombre", "tipo", "fecha", "tamano")
+        tree = ttk.Treeview(list_wrap, columns=cols, show="headings", height=10)
+        tree.heading("nombre", text="Nombre")
+        tree.heading("tipo", text="Tipo")
+        tree.heading("fecha", text="Modificado")
+        tree.heading("tamano", text="Tamaño")
+        tree.column("nombre", width=360, anchor="w")
+        tree.column("tipo", width=110, anchor="w")
+        tree.column("fecha", width=140, anchor="w")
+        tree.column("tamano", width=80, anchor="e")
+
+        sb = ttk.Scrollbar(list_wrap, orient="vertical", command=tree.yview)
+        tree.configure(yscrollcommand=sb.set)
+        tree.pack(side="left", fill="both", expand=True)
+        sb.pack(side="right", fill="y")
+
+        empty_var = tk.StringVar(value="")
+        empty_lbl = ttk.Label(card, textvariable=empty_var,
+                              background=self.CARD, foreground=self.MUTED,
+                              font=("Helvetica", 10, "italic"))
+
+        def populate():
+            for item in tree.get_children():
+                tree.delete(item)
+            empty_lbl.pack_forget()
+
+            if not os.path.isdir(OUTPUT_DIR):
+                empty_var.set("Aún no se han generado reportes.")
+                empty_lbl.pack(pady=(0, 14))
+                return
+
+            archivos = [f for f in os.listdir(OUTPUT_DIR)
+                        if os.path.isfile(os.path.join(OUTPUT_DIR, f))]
+            archivos.sort(key=lambda f: os.path.getmtime(
+                os.path.join(OUTPUT_DIR, f)), reverse=True)
+
+            if not archivos:
+                empty_var.set("Aún no se han generado reportes.")
+                empty_lbl.pack(pady=(0, 14))
+                return
+
+            for fname in archivos:
+                fpath = os.path.join(OUTPUT_DIR, fname)
+                if fname.startswith("Acta_"):
+                    tipo = "Acta de Examen"
+                elif fname.startswith("Analitico"):
+                    tipo = "Analítico"
+                else:
+                    tipo = "Otro"
+                mtime = datetime.datetime.fromtimestamp(os.path.getmtime(fpath))
+                size_kb = os.path.getsize(fpath) / 1024
+                tree.insert("", "end", values=(
+                    fname, tipo,
+                    mtime.strftime("%d/%m/%Y %H:%M"),
+                    f"{size_kb:.0f} KB"))
+
+        def open_path(path):
+            try:
+                if sys.platform == "linux":
+                    subprocess.Popen(["xdg-open", path])
+                elif sys.platform == "darwin":
+                    subprocess.Popen(["open", path])
+                elif sys.platform == "win32":
+                    os.startfile(path)
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo abrir:\n{e}")
+
+        def open_selected(_event=None):
+            sel = tree.selection()
+            if not sel:
+                return
+            fname = tree.item(sel[0], "values")[0]
+            open_path(os.path.join(OUTPUT_DIR, fname))
+
+        def open_folder():
+            os.makedirs(OUTPUT_DIR, exist_ok=True)
+            open_path(OUTPUT_DIR)
+
+        def delete_selected():
+            sel = tree.selection()
+            if not sel:
+                return
+            fname = tree.item(sel[0], "values")[0]
+            if not messagebox.askyesno(
+                    "Eliminar reporte",
+                    f"¿Eliminar definitivamente «{fname}»?", parent=win):
+                return
+            try:
+                os.remove(os.path.join(OUTPUT_DIR, fname))
+                populate()
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo eliminar:\n{e}")
+
+        tree.bind("<Double-1>", open_selected)
+        tree.bind("<Return>", open_selected)
+
+        btns = tk.Frame(win, bg=self.BG)
+        btns.pack(fill="x", padx=24, pady=(0, 18))
+        ttk.Button(btns, text="Abrir", style="Primary.TButton",
+                   cursor="hand2", command=open_selected).pack(side="left")
+        ttk.Button(btns, text="Abrir carpeta", style="Secondary.TButton",
+                   cursor="hand2", command=open_folder).pack(side="left", padx=(10, 0))
+        ttk.Button(btns, text="Refrescar", style="Secondary.TButton",
+                   cursor="hand2", command=populate).pack(side="left", padx=(10, 0))
+        ttk.Button(btns, text="Eliminar", style="Secondary.TButton",
+                   cursor="hand2", command=delete_selected).pack(side="left", padx=(10, 0))
+        ttk.Button(btns, text="Cerrar", style="Secondary.TButton",
+                   cursor="hand2", command=win.destroy).pack(side="right")
+
+        populate()
 
     def generate_report(self):
         try:
