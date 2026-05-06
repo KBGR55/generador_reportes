@@ -4,6 +4,7 @@
 # ============================================================
 esquema.xlsx
 reportes_generados/
+backups/
 
 # ============================================================
 # Artefactos de build / PyInstaller

@@ -12,6 +12,7 @@ from reportes.core import (
     generate_analitico,
     load_excel_data,
 )
+from reportes.ui.data_entry import open_data_entry
 from reportes.ui.theme import apply_theme, BG, CARD, BORDER, ACCENT_BAR
 from reportes.ui.viewer import open_reports_viewer
 
@@ -26,30 +27,55 @@ class ReportGeneratorApp:
         self.root.configure(bg=BG)
 
         try:
-            self.notas, self.datos, self.profesores, self.plan = load_excel_data()
+            self._load_data_and_lists()
         except Exception as e:
             messagebox.showerror("Error", f"No se pudo leer esquema.xlsx:\n{e}")
             sys.exit(1)
 
-        # Listas únicas para los combos
-        self.materias_unicas = sorted({n["materia"] for n in self.notas
-                                       if n["materia"]})
-        self.alumnas_unicas = sorted({n["alumna"] for n in self.notas
-                                      if n["alumna"]})
+        apply_theme()
+        self.build_ui()
+
+    def _load_data_and_lists(self):
+        """Lee el Excel y recalcula las listas únicas para los combos."""
+        self.notas, self.datos, self.profesores, self.plan = load_excel_data()
+
+        materias = {n["materia"] for n in self.notas if n["materia"]}
+        materias.update(m["materia"] for m in self.plan if m["materia"])
+        self.materias_unicas = sorted(materias)
+
+        alumnas = {n["alumna"] for n in self.notas if n["alumna"]}
+        for d in self.datos:
+            if d["nombre_religioso"]:
+                alumnas.add(d["nombre_religioso"])
+        self.alumnas_unicas = sorted(alumnas)
+
         self.profesores_unicos = sorted({n["profesor"] for n in self.notas
                                          if n["profesor"]})
 
-        for d in self.datos:
-            if d["nombre_religioso"] and d["nombre_religioso"] not in self.alumnas_unicas:
-                self.alumnas_unicas.append(d["nombre_religioso"])
+    def _refresh_data_lists(self):
+        """Recarga datos del Excel y actualiza los combos en pantalla.
 
-        self.materias_unicas = sorted(set(
-            list(self.materias_unicas) +
-            [m["materia"] for m in self.plan if m["materia"]]
-        ))
+        Se invoca tras guardar nuevos registros desde la ventana de carga.
+        """
+        try:
+            self._load_data_and_lists()
+        except Exception as e:
+            messagebox.showerror("Error",
+                                 f"No se pudo recargar esquema.xlsx:\n{e}")
+            return
 
-        apply_theme()
-        self.build_ui()
+        if hasattr(self, "acta_materia"):
+            self.acta_materia["values"] = self.materias_unicas
+            self.acta_profesor["values"] = (self.profesores_unicos +
+                                            self.profesores)
+            self.analitico_alumna["values"] = self.alumnas_unicas
+
+        if hasattr(self, "info_var"):
+            self.info_var.set(
+                f"Datos cargados: {len(self.notas)} notas  ·  "
+                f"{len(self.datos)} alumnas  ·  "
+                f"{len(self.plan)} materias en plan"
+            )
 
     # ------------------------------------------------------------------ UI
     def build_ui(self):
@@ -70,6 +96,11 @@ class ReportGeneratorApp:
         ttk.Button(header, text="Ver reportes generados",
                    style="Secondary.TButton", cursor="hand2",
                    command=lambda: open_reports_viewer(self.root)
+                   ).pack(side="right", anchor="ne", padx=(8, 0))
+        ttk.Button(header, text="Cargar datos",
+                   style="Secondary.TButton", cursor="hand2",
+                   command=lambda: open_data_entry(
+                       self.root, on_saved=self._refresh_data_lists)
                    ).pack(side="right", anchor="ne")
 
         tk.Frame(self.root, height=1, bg=BORDER).pack(

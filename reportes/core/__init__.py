@@ -5,9 +5,21 @@ Expone la API pública que consumen las capas superiores.
 from reportes.core.acta_examen import generate_acta_examen
 from reportes.core.analitico import generate_analitico
 from reportes.core.excel_loader import load_excel_data
+from reportes.core.excel_writer import (
+    ExcelLockedError,
+    add_alumna,
+    add_nota,
+    add_profesor,
+    excel_is_locked,
+)
 
 __all__ = [
     "load_excel_data",
     "generate_acta_examen",
     "generate_analitico",
+    "add_nota",
+    "add_alumna",
+    "add_profesor",
+    "excel_is_locked",
+    "ExcelLockedError",
 ]

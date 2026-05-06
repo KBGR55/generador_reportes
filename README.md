@@ -9,7 +9,8 @@ Word (`.docx`) a partir de los datos de una planilla Excel:
   las materias del plan agrupadas por año y semestre.
 
 Incluye un visor integrado para ver, abrir y eliminar los reportes ya
-generados sin salir de la aplicación.
+generados sin salir de la aplicación, y un formulario para cargar nuevas
+notas, alumnas o profesores directamente al Excel (con backup automático).
 
 ## Requisitos
 
@@ -79,6 +80,25 @@ proyecto. Debe tener **cuatro hojas**:
 > los nombres usados en la hoja `notas`. Si no coinciden, la nota saldrá
 > vacía en el Analítico.
 
+## Cargar datos al Excel
+
+El botón **Cargar datos** del header abre una ventana con tres pestañas:
+
+- **Nueva nota** — anexa una fila a la hoja `notas` (alumna + profesor +
+  materia + año + semestre + fecha + nota).
+- **Nueva alumna** — anexa una fila a la hoja `datos`.
+- **Nuevo profesor** — anexa una fila a la hoja `profesores`.
+
+Antes de cada escritura el programa:
+
+1. Verifica que `esquema.xlsx` no esté abierto en Excel/LibreOffice (si lo
+   está, se aborta y se avisa).
+2. Copia `esquema.xlsx` a `backups/esquema_<timestamp>.xlsx` para no perder
+   datos en caso de error.
+
+Tras cada guardado, los combos de la app principal se refrescan
+automáticamente con los nuevos valores.
+
 ## Salida
 
 Los `.docx` generados se guardan en `reportes_generados/`. El nombre tiene
@@ -119,6 +139,7 @@ generador_reportes/
 ├── GeneradorReportes.spec         # config PyInstaller
 ├── esquema.xlsx                   # datos fuente (NO se commitea)
 ├── reportes_generados/            # salida (NO se commitea)
+├── backups/                       # backups automáticos (NO se commitea)
 └── reportes/                      # paquete principal
     ├── __init__.py
     ├── __main__.py                # `python -m reportes`
@@ -126,6 +147,7 @@ generador_reportes/
     ├── core/                      # lógica de negocio (sin tkinter)
     │   ├── __init__.py
     │   ├── excel_loader.py        # lectura de esquema.xlsx
+    │   ├── excel_writer.py        # escritura + lock + backup
     │   ├── docx_helpers.py        # utilidades de docx
     │   ├── acta_examen.py         # generador del Acta de Examen
     │   └── analitico.py           # generador del Analítico
@@ -133,7 +155,8 @@ generador_reportes/
         ├── __init__.py
         ├── theme.py               # paleta + apply_theme()
         ├── app.py                 # ventana principal
-        └── viewer.py              # ventana «Reportes generados»
+        ├── viewer.py              # ventana «Reportes generados»
+        └── data_entry.py          # ventana «Cargar datos al Excel»
 ```
 
 ### Capas
