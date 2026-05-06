@@ -106,9 +106,12 @@ def _grid_field(parent, row, label, widget, sticky="ew"):
 
 
 def _handle_save(parent, action):
-    """Ejecuta `action`, muestra error/éxito y devuelve True si grabó."""
+    """Ejecuta `action`, muestra error/éxito y devuelve True si grabó.
+
+    `action` debe devolver el ID asignado (o None) para mostrarlo al usuario.
+    """
     try:
-        action()
+        new_id = action()
     except ExcelLockedError as e:
         messagebox.showerror("Excel abierto", str(e), parent=parent)
         return False
@@ -119,9 +122,12 @@ def _handle_save(parent, action):
         messagebox.showerror("Error", f"No se pudo guardar:\n{e}",
                              parent=parent)
         return False
-    messagebox.showinfo("Guardado",
-                        "Registro guardado en esquema.xlsx",
-                        parent=parent)
+
+    if new_id:
+        msg = f"Registro guardado en esquema.xlsx\n\nID asignado: {new_id}"
+    else:
+        msg = "Registro guardado en esquema.xlsx"
+    messagebox.showinfo("Guardado", msg, parent=parent)
     return True
 
 
@@ -178,7 +184,7 @@ def _build_nota_tab(notebook, alumnas, profesores, materias,
                 raise ValueError("Año inválido")
             fecha = _parse_fecha(en_fecha.get().strip())
             nota = _parse_nota(en_nota.get().strip())
-            add_nota(profesor, alumna, materia, anio, semestre, fecha, nota)
+            return add_nota(profesor, alumna, materia, anio, semestre, fecha, nota)
 
         if _handle_save(parent, action):
             en_nota.delete(0, "end")
@@ -227,9 +233,9 @@ def _build_alumna_tab(notebook, parent, after_save):
                     "Ingrese al menos un nombre (religioso o civil)")
             fecha_str = en_nac_fecha.get().strip()
             fecha_nac = _parse_fecha(fecha_str) if fecha_str else None
-            add_alumna(en_nac.get().strip(), relig, civil,
-                       en_doc.get().strip(), cb_tipo.get().strip(),
-                       fecha_nac)
+            return add_alumna(en_nac.get().strip(), relig, civil,
+                              en_doc.get().strip(), cb_tipo.get().strip(),
+                              fecha_nac)
 
         if _handle_save(parent, action):
             for w in (en_nac, en_relig, en_civil, en_doc, en_nac_fecha):
@@ -259,7 +265,7 @@ def _build_profesor_tab(notebook, parent, after_save):
             nombre = en_nombre.get().strip()
             if not nombre:
                 raise ValueError("Ingrese el nombre del profesor")
-            add_profesor(nombre)
+            return add_profesor(nombre)
 
         if _handle_save(parent, action):
             en_nombre.delete(0, "end")

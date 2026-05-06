@@ -99,6 +99,21 @@ Antes de cada escritura el programa:
 Tras cada guardado, los combos de la app principal se refrescan
 automáticamente con los nuevos valores.
 
+### Identificadores únicos
+
+Cada registro nuevo recibe un ID auto-generado en una columna `id` que se
+agrega al final de cada hoja:
+
+- Notas → `NOT-000001`, `NOT-000002`, …
+- Alumnas → `ALU-000001`, `ALU-000002`, …
+- Profesores → `PRO-000001`, `PRO-000002`, …
+
+El ID se muestra en el mensaje de éxito al guardar y queda en la hoja para
+poder referenciar el registro sin depender del nombre (que es propenso a
+errores de tipeo). **Los registros que ya estaban en la planilla no son
+modificados** — solo los nuevos llevan ID; si se quiere migrar los antiguos
+se puede hacer manualmente desde Excel.
+
 ## Salida
 
 Los `.docx` generados se guardan en `reportes_generados/`. El nombre tiene
