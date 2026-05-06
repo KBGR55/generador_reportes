@@ -1,0 +1,19 @@
+# GitHub Linguist: que estos formatos no cuenten en las estadísticas
+# de lenguaje (son ZIPs con XML adentro y se detectan como HTML/TeX).
+*.xlsx  linguist-detectable=false
+*.xls   linguist-detectable=false
+*.docx  linguist-detectable=false
+*.doc   linguist-detectable=false
+*.pptx  linguist-detectable=false
+
+# Marcar binarios explícitamente (sin diff, sin merge textual)
+*.xlsx  binary
+*.docx  binary
+*.exe   binary
+*.spec  text
+
+# Finales de línea consistentes en archivos de texto
+*.py    text eol=lf
+*.md    text eol=lf
+*.toml  text eol=lf
+*.gitignore text eol=lf
