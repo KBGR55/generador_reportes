@@ -99,8 +99,16 @@ Ver `.gitignore` para el detalle. Cada quien debe proveer su propio
 ## Estructura del proyecto
 
 ```
-reportes_monjas/
-├── generador_reportes.py          # aplicación principal (GUI Tkinter)
+generador_reportes/
+├── generador_reportes.py          # punto de entrada (lanza la app)
+├── config.py                      # rutas (EXCEL_PATH, OUTPUT_DIR)
+├── data_loader.py                 # lectura de esquema.xlsx
+├── docx_helpers.py                # utilidades comunes de docx
+├── acta_examen.py                 # generador del Acta de Examen
+├── analitico.py                   # generador del Analítico
+├── ui_theme.py                    # paleta y estilos ttk
+├── ui_app.py                      # ventana principal (clase App)
+├── ui_viewer.py                   # ventana «Reportes generados»
 ├── esquema.xlsx                   # datos fuente (NO se commitea)
 ├── ACTA DE EXAMEN-1.docx          # plantilla de referencia visual
 ├── Analítico de Estudios.docx     # plantilla de referencia visual
@@ -108,6 +116,21 @@ reportes_monjas/
 ├── reportes_generados/            # salida (NO se commitea)
 ├── .gitignore
 └── README.md
+```
+
+### Diagrama de dependencias
+
+```
+generador_reportes.py
+    └── ui_app.py
+            ├── data_loader.py ── config.py
+            ├── acta_examen.py ── config.py
+            │                  └── docx_helpers.py
+            ├── analitico.py   ── config.py
+            │                  └── docx_helpers.py
+            ├── ui_theme.py
+            └── ui_viewer.py   ── config.py
+                               └── ui_theme.py
 ```
 
 ## Licencia
