@@ -15,7 +15,22 @@ generados sin salir de la aplicación.
 
 - Python 3.10 o superior
 - `tkinter` (en Linux: `sudo apt install python3-tk`)
-- Dependencias Python:
+
+## Instalación
+
+Clonar el repo y, desde la raíz del proyecto, instalar las dependencias.
+Hay dos opciones:
+
+**Opción 1 — instalar el paquete (recomendado):**
+
+```bash
+pip install -e .
+```
+
+Esto instala `python-docx` y `openpyxl`, y deja disponible el comando
+`generador-reportes` en la terminal.
+
+**Opción 2 — solo dependencias:**
 
 ```bash
 pip install python-docx openpyxl
@@ -23,21 +38,18 @@ pip install python-docx openpyxl
 
 ## Ejecución
 
+Cualquiera de estas tres formas funciona:
+
 ```bash
-python3 generador_reportes.py
+python3 main.py            # script de entrada
+python3 -m reportes        # ejecutar el paquete
+generador-reportes         # si instalaste con `pip install -e .`
 ```
-
-La ventana principal se ve así:
-
-- Header con barra de acento y botón **Ver reportes generados**
-- Selector de tipo de reporte (Acta / Analítico)
-- Formulario con los campos del reporte
-- Botón primario **Generar Reporte**
 
 ## Estructura del Excel (`esquema.xlsx`)
 
-El programa lee un único archivo `esquema.xlsx` ubicado en la misma carpeta
-que el script. Debe tener **cuatro hojas**:
+El programa lee un único archivo `esquema.xlsx` ubicado en la raíz del
+proyecto. Debe tener **cuatro hojas**:
 
 ### Hoja `notas`
 | Profesor | Alumna | Materia | Año | semestre | fecha | nota |
@@ -100,38 +112,43 @@ Ver `.gitignore` para el detalle. Cada quien debe proveer su propio
 
 ```
 generador_reportes/
-├── generador_reportes.py          # punto de entrada (lanza la app)
-├── config.py                      # rutas (EXCEL_PATH, OUTPUT_DIR)
-├── data_loader.py                 # lectura de esquema.xlsx
-├── docx_helpers.py                # utilidades comunes de docx
-├── acta_examen.py                 # generador del Acta de Examen
-├── analitico.py                   # generador del Analítico
-├── ui_theme.py                    # paleta y estilos ttk
-├── ui_app.py                      # ventana principal (clase App)
-├── ui_viewer.py                   # ventana «Reportes generados»
-├── esquema.xlsx                   # datos fuente (NO se commitea)
-├── ACTA DE EXAMEN-1.docx          # plantilla de referencia visual
-├── Analítico de Estudios.docx     # plantilla de referencia visual
-├── GeneradorReportes.spec         # config PyInstaller
-├── reportes_generados/            # salida (NO se commitea)
+├── pyproject.toml                 # metadata + dependencias
+├── main.py                        # punto de entrada
+├── README.md
 ├── .gitignore
-└── README.md
+├── GeneradorReportes.spec         # config PyInstaller
+├── esquema.xlsx                   # datos fuente (NO se commitea)
+├── reportes_generados/            # salida (NO se commitea)
+└── reportes/                      # paquete principal
+    ├── __init__.py
+    ├── __main__.py                # `python -m reportes`
+    ├── config.py                  # rutas (EXCEL_PATH, OUTPUT_DIR)
+    ├── core/                      # lógica de negocio (sin tkinter)
+    │   ├── __init__.py
+    │   ├── excel_loader.py        # lectura de esquema.xlsx
+    │   ├── docx_helpers.py        # utilidades de docx
+    │   ├── acta_examen.py         # generador del Acta de Examen
+    │   └── analitico.py           # generador del Analítico
+    └── ui/                        # capa de presentación (tkinter)
+        ├── __init__.py
+        ├── theme.py               # paleta + apply_theme()
+        ├── app.py                 # ventana principal
+        └── viewer.py              # ventana «Reportes generados»
 ```
 
-### Diagrama de dependencias
+### Capas
 
 ```
-generador_reportes.py
-    └── ui_app.py
-            ├── data_loader.py ── config.py
-            ├── acta_examen.py ── config.py
-            │                  └── docx_helpers.py
-            ├── analitico.py   ── config.py
-            │                  └── docx_helpers.py
-            ├── ui_theme.py
-            └── ui_viewer.py   ── config.py
-                               └── ui_theme.py
+main.py
+  └── reportes.ui.app
+        ├── reportes.core ── reportes.config
+        │       └── (excel_loader, acta_examen, analitico, docx_helpers)
+        ├── reportes.ui.theme
+        └── reportes.ui.viewer
 ```
+
+`reportes.core` no depende de tkinter y puede usarse desde un script CLI o
+desde tests sin levantar la UI.
 
 ## Licencia
 

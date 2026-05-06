@@ -6,8 +6,8 @@ from docx.shared import Pt, Cm
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT
 
-from config import OUTPUT_DIR
-from docx_helpers import set_table_borders, format_date
+from reportes.config import OUTPUT_DIR
+from reportes.core.docx_helpers import set_table_borders, format_date
 
 
 _SEMESTER_GROUPS = [

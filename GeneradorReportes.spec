@@ -3,7 +3,7 @@
 block_cipher = None
 
 
-a = Analysis(['generador_reportes.py'],
+a = Analysis(['main.py'],
              pathex=['Z:\\src'],
              binaries=[],
              datas=[],

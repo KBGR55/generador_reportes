@@ -3,15 +3,17 @@ import os
 import sys
 import datetime
 import subprocess
-import tkinter as tk
 import traceback
+import tkinter as tk
 from tkinter import ttk, messagebox
 
-from data_loader import load_excel_data
-from acta_examen import generate_acta_examen
-from analitico import generate_analitico
-from ui_theme import apply_theme, BG, CARD, BORDER, ACCENT_BAR
-from ui_viewer import open_reports_viewer
+from reportes.core import (
+    generate_acta_examen,
+    generate_analitico,
+    load_excel_data,
+)
+from reportes.ui.theme import apply_theme, BG, CARD, BORDER, ACCENT_BAR
+from reportes.ui.viewer import open_reports_viewer
 
 
 class ReportGeneratorApp:
@@ -138,33 +140,32 @@ class ReportGeneratorApp:
         form.pack(fill="x")
         form.columnconfigure(1, weight=1)
 
-        def add_field(row, label, widget):
-            ttk.Label(form, text=label, style="Form.TLabel").grid(
+        def add_label(row, text):
+            ttk.Label(form, text=text, style="Form.TLabel").grid(
                 row=row, column=0, sticky="w", pady=7, padx=(0, 14))
-            return widget
 
         self.acta_materia = ttk.Combobox(form, values=self.materias_unicas)
-        add_field(0, "Materia", self.acta_materia)
+        add_label(0, "Materia")
         self.acta_materia.grid(row=0, column=1, sticky="ew", pady=7)
 
         self.acta_profesor = ttk.Combobox(
             form, values=self.profesores_unicos + self.profesores)
-        add_field(1, "Profesor", self.acta_profesor)
+        add_label(1, "Profesor")
         self.acta_profesor.grid(row=1, column=1, sticky="ew", pady=7)
 
         self.acta_anio = ttk.Combobox(
             form, values=["2023", "2024", "2025", "2026"], width=14)
-        add_field(2, "Año", self.acta_anio)
+        add_label(2, "Año")
         self.acta_anio.grid(row=2, column=1, sticky="w", pady=7)
         self.acta_anio.set("2025")
 
         self.acta_semestre = ttk.Combobox(form, values=["I", "II"], width=14)
-        add_field(3, "Semestre", self.acta_semestre)
+        add_label(3, "Semestre")
         self.acta_semestre.grid(row=3, column=1, sticky="w", pady=7)
         self.acta_semestre.set("I")
 
         self.acta_fecha = ttk.Entry(form, width=22)
-        add_field(4, "Fecha (DD/MM/AAAA)", self.acta_fecha)
+        add_label(4, "Fecha (DD/MM/AAAA)")
         self.acta_fecha.grid(row=4, column=1, sticky="w", pady=7)
         self.acta_fecha.insert(0, datetime.date.today().strftime("%d/%m/%Y"))
 
@@ -261,3 +262,10 @@ class ReportGeneratorApp:
             subprocess.Popen(["open", filepath])
         elif sys.platform == "win32":
             os.startfile(filepath)
+
+
+def main():
+    """Lanza la aplicación. Punto de entrada del paquete."""
+    root = tk.Tk()
+    ReportGeneratorApp(root)
+    root.mainloop()

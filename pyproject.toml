@@ -1,0 +1,28 @@
+[project]
+name = "generador-reportes"
+version = "0.1.0"
+description = "Generador de Actas de Examen y Analíticos de Estudios desde una planilla Excel — Estudiantado Santa Mariana de Jesús"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+    { name = "KBGR55" },
+]
+dependencies = [
+    "python-docx>=1.0",
+    "openpyxl>=3.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pyinstaller>=6.0",
+]
+
+[project.scripts]
+generador-reportes = "reportes.ui.app:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["reportes*"]

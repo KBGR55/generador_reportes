@@ -1,7 +1,7 @@
 """Lectura del archivo esquema.xlsx."""
 import openpyxl
 
-from config import EXCEL_PATH
+from reportes.config import EXCEL_PATH
 
 
 def load_excel_data():

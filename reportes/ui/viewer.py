@@ -6,8 +6,8 @@ import subprocess
 import tkinter as tk
 from tkinter import ttk, messagebox
 
-from config import OUTPUT_DIR
-from ui_theme import BG, CARD, BORDER, MUTED, ACCENT_BAR
+from reportes.config import OUTPUT_DIR
+from reportes.ui.theme import BG, CARD, BORDER, MUTED, ACCENT_BAR
 
 
 def _open_path(path):
